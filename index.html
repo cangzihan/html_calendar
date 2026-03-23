@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 Calendar</title>
+<style>
+    :root {
+        --sunday-color: #e5534b;
+        --saturday-color: #42a5f5;
+        --text-color: #333;
+        --highlight-bg: #e5534b;
+        --highlight-bg2: #ff833c;
+        --border-color: #333;
+    }
+
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        background-color: #f4f6f9;
+        display: flex;
+        justify-content: center;
+        padding: 40px 20px;
+        margin: 0;
+    }
+
+    .calendar-wrapper {
+        background: #fff;
+        padding: 40px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        max-width: 1000px;
+        width: 100%;
+    }
+
+    .calendar-title {
+        text-align: center;
+        font-size: 32px;
+        font-weight: bold;
+        color: var(--text-color);
+        margin-top: 0;
+        margin-bottom: 40px;
+        letter-spacing: 2px;
+    }
+
+    .months-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 30px 40px;
+    }
+
+    @media (max-width: 900px) {
+        .months-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+        .months-grid { grid-template-columns: 1fr; }
+    }
+
+    .month {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .month-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: var(--text-color);
+    }
+
+    .weekdays {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-weight: bold;
+        font-size: 14px;
+        border-top: 2px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 5px 0;
+        margin-bottom: 5px;
+    }
+
+    .days-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        row-gap: 6px;
+    }
+
+    .day-cell {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-color);
+        height: 32px;
+    }
+
+    /* 包含数字的实际日期容器，用于做圆形高亮 */
+    .day-number {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+    }
+
+    /* 颜色标识 */
+    .sunday { color: var(--sunday-color); }
+    .saturday { color: var(--saturday-color); }
+
+    /* 高亮样式 */
+    .highlight .day-number {
+        background-color: var(--highlight-bg);
+        color: white !important;
+        font-weight: bold;
+    }
+    .highlight2 .day-number {
+        background-color: var(--highlight-bg2);
+        color: white !important;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div class="calendar-wrapper">
+    <h1 class="calendar-title">2026</h1>
+    <div class="months-grid" id="calendar"></div>
+</div>
+
+<script>
+    // ==========================================
+    // 💡 在这里自由编辑你需要高亮的日期！
+    // 格式必须为 'YYYY-MM-DD'
+    // ==========================================
+    const highlightedDates = [
+        '2026-01-01', '2026-01-02','2026-01-03', '2026-01-04',
+        '2026-01-10', '2026-01-11','2026-01-12', 
+        '2026-02-11', '2026-02-21', '2026-02-22', '2026-02-23',
+        '2026-03-20', '2026-03-21', '2026-03-22',
+        '2026-04-29',
+        '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06',
+        '2026-07-20',
+        '2026-08-08', '2026-08-09', '2026-08-11', '2026-08-15', '2026-08-16',
+        '2026-09-19', '2026-09-20', '2026-09-21', '2026-09-22', '2026-09-23',
+        '2026-10-12',
+        '2026-11-03', '2026-11-23',
+        '2026-12-29', '2026-12-30', '2026-12-31'
+    ];
+    const highlightedDates2 = [
+        '2026-08-10', '2026-08-12', '2026-08-13', '2026-08-14'
+    ];
+
+    const year = 2026;
+    const weekdays = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    const calendarContainer = document.getElementById('calendar');
+
+    // 补齐日期格式为 YYYY-MM-DD
+    function formatDate(year, month, day) {
+        const m = String(month).padStart(2, '0');
+        const d = String(day).padStart(2, '0');
+        return `${year}-${m}-${d}`;
+    }
+
+    // 生成日历
+    for (let month = 0; month < 12; month++) {
+        // 创建月份容器
+        const monthDiv = document.createElement('div');
+        monthDiv.className = 'month';
+
+        // 1. 添加月份标题
+        const title = document.createElement('div');
+        title.className = 'month-title';
+        title.innerText = month + 1;
+        monthDiv.appendChild(title);
+
+        // 2. 添加星期表头 (S M T W T F S)
+        const weekdaysDiv = document.createElement('div');
+        weekdaysDiv.className = 'weekdays';
+        weekdays.forEach((day, index) => {
+            const span = document.createElement('span');
+            span.innerText = day;
+            if (index === 0) span.classList.add('sunday');
+            if (index === 6) span.classList.add('saturday');
+            weekdaysDiv.appendChild(span);
+        });
+        monthDiv.appendChild(weekdaysDiv);
+
+        // 3. 添加日期网格
+        const daysGrid = document.createElement('div');
+        daysGrid.className = 'days-grid';
+
+        const firstDay = new Date(year, month, 1).getDay(); // 本月第一天是星期几
+        const daysInMonth = new Date(year, month + 1, 0).getDate(); // 本月有多少天
+
+        // 填充1号之前的空白单元格
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'day-cell';
+            daysGrid.appendChild(emptyCell);
+        }
+
+        // 填充日期
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement('div');
+            cell.className = 'day-cell';
+            
+            const currentDayOfWeek = (firstDay + day - 1) % 7;
+            const dateString = formatDate(year, month + 1, day);
+
+            // 设置周末颜色
+            if (currentDayOfWeek === 0) cell.classList.add('sunday');
+            if (currentDayOfWeek === 6) cell.classList.add('saturday');
+
+            // 检查是否需要高亮
+            if (highlightedDates.includes(dateString)) {
+                cell.classList.add('highlight');
+            }
+            if (highlightedDates2.includes(dateString)) {
+                cell.classList.add('highlight2');
+            }
+
+            // 日期数字的内部容器 (用于画圆圈)
+            const numberSpan = document.createElement('span');
+            numberSpan.className = 'day-number';
+            numberSpan.innerText = day;
+
+            cell.appendChild(numberSpan);
+            daysGrid.appendChild(cell);
+        }
+
+        monthDiv.appendChild(daysGrid);
+        calendarContainer.appendChild(monthDiv);
+    }
+</script>
+
+</body>
+</html>
