@@ -42,6 +42,10 @@
         letter-spacing: 2px;
     }
 
+    .export-row { display:flex; align-items:center; justify-content:center; position:relative; padding:6px 0; margin-bottom:20px; }
+    .export-row .calendar-title { margin:0; }
+    #exportBtn { width:38px; height:38px; display:flex; align-items:center; justify-content:center; position:absolute; right:0; top:50%; transform:translateY(-50%); border-radius:6px; border:none; background:#333; color:#fff; cursor:pointer; }
+
     .months-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -127,9 +131,21 @@
 <body>
 
 <div class="calendar-wrapper">
-    <h1 class="calendar-title">2026</h1>
+    <div class="export-row">
+        <h1 class="calendar-title">2026</h1>
+        <button id="exportBtn" aria-label="导出为 PNG" title="导出为 PNG">
+            <!-- download icon -->
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 3v10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 9l4 4 4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M21 21H3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+    </div>
     <div class="months-grid" id="calendar"></div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
     // ==========================================
@@ -143,7 +159,7 @@
         '2026-03-20', '2026-03-21', '2026-03-22',
         '2026-04-29',
         '2026-05-02', '2026-05-03', '2026-05-04', '2026-05-05', '2026-05-06',
-        '2026-07-20',
+        '2026-07-18', '2026-07-19', '2026-07-20',
         '2026-08-11',
         '2026-09-19', '2026-09-20', '2026-09-21', '2026-09-22', '2026-09-23',
         '2026-10-10', '2026-10-11', '2026-10-12',
@@ -230,9 +246,39 @@
             cell.appendChild(numberSpan);
             daysGrid.appendChild(cell);
         }
+    monthDiv.appendChild(daysGrid);
+    calendarContainer.appendChild(monthDiv);
+    }
 
-        monthDiv.appendChild(daysGrid);
-        calendarContainer.appendChild(monthDiv);
+    // 导出为 PNG（使用 html2canvas）
+    const exportBtn = document.getElementById('exportBtn');
+    if (exportBtn) {
+        exportBtn.addEventListener('click', async () => {
+            exportBtn.disabled = true;
+            const originalDisplay = exportBtn.style.display || '';
+            try {
+                const el = document.querySelector('.calendar-wrapper');
+                // 隐藏按钮以避免出现在导出图片中
+                exportBtn.style.display = 'none';
+
+                const canvas = await html2canvas(el, { backgroundColor: null, scale: 2 });
+                canvas.toBlob(b => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(b);
+                    link.download = `calendar-${year}.png`;
+                    link.click();
+                    URL.revokeObjectURL(link.href);
+                    // 恢复按钮
+                    exportBtn.style.display = originalDisplay;
+                    exportBtn.disabled = false;
+                }, 'image/png');
+            } catch (err) {
+                console.error(err);
+                alert('导出失败：' + err.message);
+                exportBtn.disabled = false;
+                exportBtn.style.display = originalDisplay;
+            }
+        });
     }
 </script>
 
